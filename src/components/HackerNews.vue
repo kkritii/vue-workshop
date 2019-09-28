@@ -2,23 +2,25 @@
   <div class="container">
     <div class="card">
       <div class="heading">
-        <h4 class="title">Netflix Ratings</h4>
+        <h4 class="title">Hacker News</h4>
       </div>
       <div class="search">
-        <input type="text" class="form-control" placeholder="Search by title" />
+        <input v-model="title" type="text" class="form-control" placeholder="Search by title" />
       </div>
       <div class="content">
         <div>
-          <p>Loading news</p>
+          <p v-if="isloading">Loading news...</p>
         </div>
         <div>
           <div>
             <p></p>
           </div>
           <ul class="list">
-            <li>
-              <a href></a>
-              <span>By:</span>
+            <li v-for="(item,index) in news" :key="index">
+              <template v-if="item.title">
+                <a :href="item.url">{{item.title}}</a>
+                <span>By: {{item.author}}</span>
+              </template>
             </li>
           </ul>
         </div>
@@ -28,8 +30,59 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
-  name: "HackerNews"
+  name: "HackerNews",
+  data() {
+    return {
+      title: "",
+      news: [],
+      isloading: false
+    };
+  },
+  async created() {
+    //http://hn.algolia.com/api/v1/search
+    try {
+      this.isloading = true;
+      const response = await axios.get("http://hn.algolia.com/api/v1/search");
+      this.isloading = false;
+      /* eslint-disable */
+      console.log(response);
+      this.news = response.data.hits;
+      /* eslint-disable */
+      console.log(this.news);
+    } catch (error) {
+      this.isloading = false;
+      /* eslint-disable */
+      console.log(error);
+    }
+  },
+  watch: {
+    async title(value) {
+      console.log(value);
+      try {
+        this.isloading = true;
+        const response = await axios.get(
+          "http://hn.algolia.com/api/v1/search",
+          {
+            params: {
+              query: value
+            }
+          }
+        );
+        this.isloading = false;
+        /* eslint-disable */
+        console.log(response);
+        this.news = response.data.hits;
+        /* eslint-disable */
+        console.log(this.news);
+      } catch (error) {
+        this.isloading = false;
+        /* eslint-disable */
+        console.log(error);
+      }
+    }
+  }
 };
 </script>
 
